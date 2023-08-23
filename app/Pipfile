@@ -12,6 +12,7 @@ python-decouple = "*"
 sqlalchemy = "*"
 alembic = "*"
 psycopg2-binary = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

@@ -1,38 +1,46 @@
-from datetime import datetime
+from datetime import date
+from typing import List
 
 from db.conections import Session, get_db
-from db.model import Expenses
+from db.model import Balanco, Entrada, EntradaModel, Saida, SaidaModel
 from fastapi import Depends, FastAPI
 from sqlalchemy import func
 
 app = FastAPI()
 
 
-@app.post("/expenses/", response_model=Expenses)
-def create_expense(expense: Expenses, db: Session = Depends(get_db)):
-    db.add(expense)
+@app.post("/entradas/")
+def create_entrada(entrada: EntradaModel, db: Session = Depends(get_db)):
+    db_entrada = Entrada(**entrada.dict())
+    db.add(db_entrada)
     db.commit()
-    db.refresh(expense)
-    return expense
-
-# Route to get monthly expenses
+    db.refresh(entrada)
+    return entrada
 
 
-@app.get("/expenses/monthly/")
-def get_monthly_expenses(month: int, year: int, db: Session = Depends(get_db)):
-    expenses = db.query(Expenses).filter(
-        Expenses.month == month, Expenses.year == year).all()
-    total_expenses = sum(expense.value for expense in expenses)
-    return {"total_expenses": total_expenses, "expenses": expenses}
+@app.post("/saidas/", response_model=SaidaModel)
+def create_saida(saida: SaidaModel, db: Session = Depends(get_db)):
+    db_saida = Saida(**saida.dict())
+    db.add(db_saida)
+    db.commit()
+    db.refresh(saida)
+    return saida
 
-# Route to get yearly expenses
 
+@app.get("/balanco/{ano}/{mes}")
+def get_balanco(ano: int, mes: int, db: Session = Depends(get_db)):
+    first_day = date(ano, mes, 1)
+    last_day = date(ano, mes + 1, 1) if mes < 12 else date(ano + 1, 1, 1)
 
-@app.get("/expenses/yearly/")
-def get_yearly_expenses(year: int, db: Session = Depends(get_db)):
-    from sqlalchemy.sql import func
-    result = db.query(Expenses.month, func.sum(Expenses.value).label("total_monthly_expenses"))\
-        .filter(Expenses.year == year)\
-        .group_by(Expenses.month)\
-        .all()
-    return [{"month": row[0], "total_expenses": row[1]} for row in result]
+    entradas = db.query(Entrada).filter(
+        Entrada.data >= first_day, Entrada.data < last_day).all()
+    saidas = db.query(Saida).filter(
+        Saida.data >= first_day, Saida.data < last_day).all()
+
+    total_entradas = sum(entrada.valor for entrada in entradas)
+    total_saidas = sum(saida.valor for saida in saidas)
+
+    balanco = Balanco(mes=mes, ano=ano,
+                      valor_total=total_entradas - total_saidas)
+
+    return balanco

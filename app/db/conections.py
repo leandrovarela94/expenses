@@ -1,22 +1,22 @@
-
-from typing import List
+# conections.py
+import os
 
 from db.base import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Database configuration
-DATABASE_URL = "postgresql://username:password@localhost/dbname"
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
+database_url = 'postgresql://postgres:Qh8h9Sz1iWKKSlL4lDvR@containers-us-west-81.railway.app:5531/railway'
+engine = create_engine(database_url)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 
 
 def get_db():
-    db = SessionLocal()
+    db = Session()
     try:
         yield db
     finally:
         db.close()
+
+
+Session()
