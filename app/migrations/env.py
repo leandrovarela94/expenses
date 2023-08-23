@@ -9,7 +9,11 @@ from sqlalchemy import engine_from_config, pool
 # access to the values within the .ini file in use.
 config = context.config
 
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
 DB_URL_POSTGRES = config_decouple('DB_URL_POSTGRES')
+
+config.set_main_option("sqlalchemy.url", DB_URL_POSTGRES)
 
 
 # Interpret the config file for Python logging.

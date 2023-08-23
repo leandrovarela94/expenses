@@ -21,23 +21,3 @@ class Saida(Base):
     descricao = Column(String)
     valor = Column(Float)
     date = Column(String)
-
-
-class Balanco(BaseModel):
-    mes: int
-    ano: int
-    valor_total: float
-
-
-class EntradaModel(BaseModel):
-    id: int
-    descricao: str
-    valor: float
-    date: str
-
-
-class SaidaModel(BaseModel):
-    id: int
-    descricao: str
-    valor: float
-    date: str
