@@ -1,84 +1,70 @@
-from datetime import date
-from typing import List
-
-from db.conections import Session, get_db
-from db.model import Entrada, Saida
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel
-from sqlalchemy import func
+from bson import ObjectId
+from db.functions import (DespesaModel, calcular_total_mensal,
+                          calcular_total_por_prioridade,
+                          criar_colecao_despesas, detalhar_despesas_ano,
+                          inserir_despesa, listar_despesas_mes)
+from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
 
 app = FastAPI()
 
-
-class Balanco(BaseModel):
-    mes: int
-    ano: int
-    valor_total: float
+# Rota para criar a coleção de despesas (uma vez)
 
 
-class EntradaCreate(BaseModel):  # Modelo para criar Entrada
-    descricao: str
-    valor: float
-    date: str  # Data deve ser uma string no formato "YYYY-MM-DD"
+@app.post("/criar_colecao")
+async def criar_colecao():
+    criar_colecao_despesas()
+    return {"message": "Coleção 'despesas' criada com sucesso."}
+
+# Função personalizada para serializar ObjectId
 
 
-class SaidaCreate(BaseModel):  # Modelo para criar Saída
-    descricao: str
-    valor: float
-    date: str  # Data deve ser uma string no formato "YYYY-MM-DD"
+def custom_json_encoder(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)  # Converta ObjectId em uma string
+    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
-class EntradaResponse(BaseModel):  # Modelo de resposta para Entrada
-    id: int
-    descricao: str
-    valor: float
-    date: str  # Data deve ser uma string no formato "YYYY-MM-DD"
+# Substitua o encoder padrão pelo encoder personalizado
+app.json_encoder = custom_json_encoder
+
+# Rota para inserir uma despesa
 
 
-class SaidaResponse(BaseModel):  # Modelo de resposta para Saída
-    id: int
-    descricao: str
-    valor: float
-    date: str  # Data deve ser uma string no formato "YYYY-MM-DD"
+@app.post("/despesas/")
+async def criar_despesa(despesa: DespesaModel):
+    inserted_id = inserir_despesa(despesa)
+    # Converta o ID para uma string
+    return {"message": "Despesa inserida com sucesso", "id": str(inserted_id)}
+
+# Rota para listar despesas de um mês específico
 
 
-@app.post("/entradas/", response_model=EntradaResponse)
-def create_entrada(entrada: EntradaCreate, db: Session = Depends(get_db)):
+@app.get("/despesas/{ano}/{mes}")
+async def listar_despesas(ano: int, mes: int):
+    despesas = listar_despesas_mes(ano, mes)
+    return despesas
 
-    # Crie uma instância do modelo Entrada
-    entrada_db = Entrada(**entrada.dict())
-    db.add(entrada_db)
-    db.commit()
-    db.refresh(entrada_db)
-    return entrada_db
+# Rota para calcular o total de despesas mensais
 
 
-@app.post("/saidas/", response_model=SaidaResponse)
-def create_saida(saida: SaidaCreate, db: Session = Depends(get_db)):
+@app.get("/total/{ano}/{mes}")
+async def calcular_total(ano: int, mes: int):
+    total = calcular_total_mensal(ano, mes)
+    return {"total": total}
 
-    saida_db = Saida(**saida.dict())  # Crie uma instância do modelo Saida
-    db.add(saida_db)
-    db.commit()
-    db.refresh(saida_db)
-    return saida_db
+# Rota para calcular o total de despesas por prioridade
 
 
-@app.get("/balanco/{ano}/{mes}")
-def get_balanco(ano: int, mes: int, db: Session = Depends(get_db)):
-    first_day = f"{ano}-{mes:02d}-01"  # Formato YYYY-MM-DD
-    next_month = mes + 1 if mes < 12 else 1
-    next_year = ano + 1 if mes == 12 else ano
-    last_day = f"{next_year}-{next_month:02d}-01"  # Formato YYYY-MM-DD
+@app.get("/total/prioridade")
+async def calcular_total_prioridade():
+    total_por_prioridade = calcular_total_por_prioridade()
+    return total_por_prioridade
 
-    entradas = db.query(Entrada).filter(
-        Entrada.date >= first_day, Entrada.date < last_day).all()
-    saidas = db.query(Saida).filter(
-        Saida.date >= first_day, Saida.date < last_day).all()
+# Rota para detalhar as despesas do ano todo, mês a mês
 
-    total_entradas = sum(entrada.valor for entrada in entradas)
-    total_saidas = sum(saida.valor for saida in saidas)
 
-    balanco = Balanco(mes=mes, ano=ano,
-                      valor_total=total_entradas - total_saidas)
-
-    return balanco
+@app.get("/detalhes/{ano}")
+async def detalhar_despesas(ano: int):
+    detalhes = detalhar_despesas_ano(ano)
+    return detalhes
