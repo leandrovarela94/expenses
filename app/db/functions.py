@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from bson import ObjectId
 from db.conections import collection, db
 from pydantic import BaseModel
 
