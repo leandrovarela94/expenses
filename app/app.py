@@ -5,8 +5,17 @@ from db.functions import (DespesaModel, calcular_total_mensal,
                           inserir_despesa, listar_despesas_mes)
 from fastapi import FastAPI, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Rota para criar a coleção de despesas (uma vez)
 
