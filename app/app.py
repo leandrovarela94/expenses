@@ -1,10 +1,9 @@
-from bson import ObjectId
+
 from db.functions import (DespesaModel, calcular_total_mensal,
                           calcular_total_por_prioridade,
                           criar_colecao_despesas, detalhar_despesas_ano,
                           inserir_despesa, listar_despesas_mes)
 from fastapi import FastAPI, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -33,14 +32,14 @@ async def criar_colecao():
 # Função personalizada para serializar ObjectId
 
 
-def custom_json_encoder(obj):
-    if isinstance(obj, ObjectId):
-        return str(obj)  # Converta ObjectId em uma string
-    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+# def custom_json_encoder(obj):
+#     if isinstance(obj, ObjectId):
+#         return str(obj)  # Converta ObjectId em uma string
+#     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
-# Substitua o encoder padrão pelo encoder personalizado
-app.json_encoder = custom_json_encoder
+# # Substitua o encoder padrão pelo encoder personalizado
+# app.json_encoder = custom_json_encoder
 
 # Rota para inserir uma despesa
 

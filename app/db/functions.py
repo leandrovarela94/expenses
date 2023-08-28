@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from bson import ObjectId
 from db.conections import collection, db
 from pydantic import BaseModel
 
@@ -29,12 +28,6 @@ def inserir_despesa(despesa: DespesaModel):
     return result.inserted_id
 
 # Função para listar despesas de um mês específico
-
-
-def custom_json_encoder(obj):
-    if isinstance(obj, ObjectId):
-        return str(obj)  # Converta ObjectId em uma string
-    raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
 def listar_despesas_mes(ano: int, mes: int):
