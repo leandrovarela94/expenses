@@ -8,10 +8,9 @@ fastapi = "*"
 uvicorn = "*"
 pytest = "*"
 pydantic = "*"
-python-decouple = "*"
-sqlalchemy = "*"
 alembic = "*"
-psycopg2-binary = "*"
+python-dotenv = "*"
+pymongo = "*"
 
 [dev-packages]
 
