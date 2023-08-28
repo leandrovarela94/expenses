@@ -3,12 +3,17 @@ from db.functions import (DespesaModel, calcular_total_mensal,
                           calcular_total_por_prioridade,
                           criar_colecao_despesas, detalhar_despesas_ano,
                           inserir_despesa, listar_despesas_mes)
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.encoders import jsonable_encoder
 
 app = FastAPI()
 
 # Rota para criar a coleção de despesas (uma vez)
+
+
+@app.get("/heath")
+async def get_health():
+    return status.HTTP_200_OK
 
 
 @app.post("/criar_colecao")
