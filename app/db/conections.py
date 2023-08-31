@@ -3,7 +3,7 @@ import os
 from pymongo.mongo_client import MongoClient
 
 # Substitua com sua própria URL de conexão do MongoDB Atlas
-url = os.getenv("DB_MONGO")
+url = "mongodb+srv://varela:Murilo31@expanses.z2eyqxa.mongodb.net/"
 
 
 # Tente conectar ao cluster
