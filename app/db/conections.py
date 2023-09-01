@@ -1,22 +1,21 @@
+import os
 
-from typing import List
+from pymongo.mongo_client import MongoClient
 
-from db.base import Base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-# Database configuration
-DATABASE_URL = "postgresql://username:password@localhost/dbname"
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Substitua com sua própria URL de conexão do MongoDB Atlas
+url = os.getenv("DB_MONGO")
 
 
-Base.metadata.create_all(bind=engine)
+# Tente conectar ao cluster
+try:
+    client = MongoClient(url)
+    db = client.get_database("Expanses")
+    # Substitua "sua_colecao" pelo nome da coleção que você deseja acessar
+    collection = db.get_collection("despesas")
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    # Teste uma consulta simples na coleção
+    document = collection.find_one()
+    print("Conexão bem-sucedida ao MongoDB Atlas")
+    print("Exemplo de documento na coleção:", document)
+except Exception as e:
+    print("Erro de conexão:", str(e))
