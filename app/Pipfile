@@ -8,8 +8,8 @@ fastapi = "*"
 uvicorn = "*"
 pytest = "*"
 pydantic = "*"
-python-dotenv = "*"
 pymongo = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
