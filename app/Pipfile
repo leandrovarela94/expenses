@@ -10,6 +10,8 @@ pytest = "*"
 pydantic = "*"
 pymongo = "*"
 python-dotenv = "*"
+ddtrace = "*"
+datadog = "*"
 
 [dev-packages]
 

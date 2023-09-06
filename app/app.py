@@ -1,12 +1,27 @@
 
-from db.functions import (DespesaModel, calcular_total_mensal,
-                          calcular_total_por_prioridade,
+import logging
+
+import datadog
+import ddtrace
+from db.functions import (calcular_total_mensal, calcular_total_por_prioridade,
                           criar_colecao_despesas, detalhar_despesas_ano,
                           inserir_despesa, listar_despesas_mes)
-from fastapi import FastAPI, status
+from dto.DespesasDTO import Despesas
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+datadog.initialize(
+    api_key='b3cc1d2b39bebd20716385298d626487', hostname='agent-hostname', port=8126)
+
+# Configuração do logger para enviar logs para o Datadog
+ddtrace.config.logs_injection = True
+ddtrace.config.logs_enabled = True
+
+
+logging.getLogger(__name__)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +32,14 @@ app.add_middleware(
 )
 
 # Rota para criar a coleção de despesas (uma vez)
+logger = logging.getLogger(__name__)
+
+
+@app.get("/")
+async def read_root():
+    # Crie um span para esta requisição
+    # Execute o código da requisição aqui
+    return {"message": "Hello, World"}
 
 
 @app.get("/heath")
@@ -29,26 +52,30 @@ async def criar_colecao():
     criar_colecao_despesas()
     return {"message": "Coleção 'despesas' criada com sucesso."}
 
-# Função personalizada para serializar ObjectId
+# Inicialize o tracer do Datadog
 
 
-# def custom_json_encoder(obj):
-#     if isinstance(obj, ObjectId):
-#         return str(obj)  # Converta ObjectId em uma string
-#     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+@app.post("/despesas")
+async def criar_despesa(despesa: Despesas, request: Request):
 
-
-# # Substitua o encoder padrão pelo encoder personalizado
-# app.json_encoder = custom_json_encoder
-
-# Rota para inserir uma despesa
-
-
-@app.post("/despesas/")
-async def criar_despesa(despesa: DespesaModel):
     inserted_id = inserir_despesa(despesa)
-    # Converta o ID para uma string
-    return {"message": "Despesa inserida com sucesso", "id": str(inserted_id)}
+    status_code = request.scope.get("status_code", None)
+
+    if status_code == 200:
+        # Lógica para quando o código de status for 200 OK
+        logger.info(
+            f" message: Despesa inserida com sucesso, id: {str(inserted_id)} ")
+
+    elif status_code == 400:
+        # Lógica para quando o código de status for 400 Bad Request
+        logger.error(
+            f"message: Um dos campos foi passado incorretamente, body: {request.scope.items()} ")
+
+    else:
+        logger.error(
+            f"message: Um dos campos foi passado incorretamente, body: {request.scope.items()} ")
+
+    return status.HTTP_200_OK
 
 # Rota para listar despesas de um mês específico
 

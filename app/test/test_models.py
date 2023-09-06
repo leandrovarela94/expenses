@@ -1,5 +1,6 @@
 import pytest
-from db.functions import DespesaModel, collection, criar_colecao_despesas
+from db.functions import collection, criar_colecao_despesas
+from dto.DespesasDTO import Despesas
 from fastapi.testclient import TestClient
 from pymongo import MongoClient
 
@@ -13,7 +14,7 @@ test_client = MongoClient(f"mongodb://localhost:27017/{test_db_name}")
 # Modelo Pydantic para testes
 
 
-class TestDespesaModel(DespesaModel):
+class TestDespesas(Despesas):
     id: str
 
 # Fixture para criar a coleção de despesas para testes

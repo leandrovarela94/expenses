@@ -1,15 +1,9 @@
 from datetime import datetime
 
 from db.conections import collection, db
-from pydantic import BaseModel
-
+from dto.DespesasDTO import Despesas
 
 # Modelo Pydantic para as despesas
-class DespesaModel(BaseModel):
-    nome: str
-    valor: float
-    data_vencimento: datetime
-    prioridade: str
 
 # Função para criar a coleção de despesas (uma vez)
 
@@ -22,7 +16,8 @@ def criar_colecao_despesas():
 # Função para inserir uma despesa
 
 
-def inserir_despesa(despesa: DespesaModel):
+def inserir_despesa(despesa: Despesas
+                    ):
     despesa_dict = despesa.dict()
     result = collection.insert_one(despesa_dict)
     return result.inserted_id
@@ -33,7 +28,8 @@ def inserir_despesa(despesa: DespesaModel):
 def listar_despesas_mes(ano: int, mes: int):
     despesas = collection.find({"$expr": {"$eq": [{"$year": "$data_vencimento"}, ano], "$eq": [
                                {"$month": "$data_vencimento"}, mes]}})
-    return [DespesaModel(**despesa) for despesa in despesas]
+    return [Despesas
+            (**despesa) for despesa in despesas]
 
 # Função para calcular o total de despesas mensais
 
